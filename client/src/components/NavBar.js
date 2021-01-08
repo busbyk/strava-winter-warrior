@@ -5,7 +5,7 @@ export default function NavBar(props) {
 
   async function handleLogoutClick() {
     await auth.logout()
-    window.open('http://localhost:3000/auth/logout', '_self') //TODO change this to be a fetch and on the server just log the user out, update Router to redirect unknown routes to /
+    window.open('/auth/logout', '_self') //TODO change this to be a fetch and on the server just log the user out, update Router to redirect unknown routes to /
   }
 
   return (
