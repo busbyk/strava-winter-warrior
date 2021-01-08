@@ -38,8 +38,4 @@ router.get(
   })
 )
 
-// router.get('/refreshAccessToken', (req, res) => {
-//   res.redirect('/auth/strava')
-// })
-
 module.exports = router

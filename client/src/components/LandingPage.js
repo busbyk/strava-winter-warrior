@@ -31,5 +31,5 @@ export default function LandingPage(props) {
 }
 
 function handleLoginClick() {
-  window.open('http://localhost:3001/auth/strava', '_self')
+  window.open('http://localhost:3000/auth/strava', '_self')
 }

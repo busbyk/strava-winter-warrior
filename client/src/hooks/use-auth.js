@@ -54,7 +54,7 @@ function useProvideAuth() {
 }
 
 async function getLoggedInUser() {
-  const res = await fetch('http://localhost:3001/user', {
+  const res = await fetch('/user', {
     method: 'GET',
     credentials: 'include',
     headers: {

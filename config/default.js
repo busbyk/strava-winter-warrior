@@ -18,6 +18,7 @@ const KEYS = {
   ...STRAVA_TOKENS,
   ...MONGODB,
   ...SESSION,
+  PORT: process.env.PORT,
 }
 
 module.exports = KEYS

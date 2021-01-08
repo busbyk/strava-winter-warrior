@@ -49,7 +49,7 @@ export default function Scoreboard() {
 }
 
 async function getWarriors() {
-  const res = await fetch('http://localhost:3001/strava/warriors', {
+  const res = await fetch('/strava/warriors', {
     method: 'GET',
     credentials: 'include',
     headers: {

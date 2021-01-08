@@ -25,27 +25,32 @@ const strategy = new StravaStrategy(
     callbackURL: '/auth/strava/callback',
   },
   async (accessToken, refreshToken, params, profile, done) => {
-    const existingUser = await User.findOne({
-      stravaId: profile.id,
-    })
-
-    if (!existingUser) {
-      const newUser = await new User({
-        displayName: profile.displayName,
-        firstname: profile.name.givenName,
-        lastname: profile.name.familyName,
+    try {
+      const existingUser = await User.findOne({
         stravaId: profile.id,
-        profileImageUrl: profile.photos[0].value,
-        accessToken: accessToken,
-        refreshToken: refreshToken,
-        tokenExpiresAt: params.expires_at,
-      }).save()
+      })
 
-      if (newUser) {
-        return done(null, newUser)
+      if (!existingUser) {
+        const newUser = await new User({
+          displayName: profile.displayName,
+          firstname: profile.name.givenName,
+          lastname: profile.name.familyName,
+          stravaId: profile.id,
+          profileImageUrl: profile.photos[0].value,
+          accessToken: accessToken,
+          refreshToken: refreshToken,
+          tokenExpiresAt: params.expires_at,
+        }).save()
+
+        if (newUser) {
+          return done(null, newUser)
+        }
       }
+      done(null, existingUser)
+    } catch (err) {
+      console.error(err)
+      done(null, null)
     }
-    done(null, existingUser)
   }
 )
 
