@@ -19,7 +19,7 @@ export default function WarriorCard(props) {
           <div className='content'>
             <div className='level'>
               {!numActivities && !score && (
-                <div class='notification'>
+                <div className='notification'>
                   <p>
                     {firstname} hasn't signed in yet. Remind them to sign into
                     this app so their score can be calculated!

@@ -5,14 +5,25 @@ import ProgressBar from './ProgressBar'
 export default function Scoreboard() {
   const [warriors, setWarriors] = useState(null)
   const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function fetchData() {
       try {
+        try {
+          await fetchNewActivities()
+        } catch (err) {
+          console.log(
+            "couldn't fetch new activities for warriors, error: ",
+            err
+          )
+        }
         const warriors = await getWarriors()
         setWarriors(warriors)
+        setLoading(false)
       } catch (err) {
         setError(err)
+        setLoading(false)
       }
     }
     fetchData()
@@ -21,8 +32,14 @@ export default function Scoreboard() {
   return (
     <section className='section'>
       <div className='container is-max-desktop'>
+        {loading && (
+          <progress
+            className='progress is-large is-primary'
+            max='100'
+          ></progress>
+        )}
         {error && (
-          <div class='notification is-warning'>
+          <div className='notification is-warning'>
             <p>
               Looks like you're not part of the{' '}
               <strong>Winter Warrior 2021</strong> club on Strava.
@@ -43,8 +60,11 @@ export default function Scoreboard() {
             </p>
           </div>
         )}
-        <ProgressBar />
-        {warriors && warriors.map((warrior) => <WarriorCard user={warrior} />)}
+        {!loading && <ProgressBar />}
+        {warriors &&
+          warriors.map((warrior, idx) => (
+            <WarriorCard user={warrior} idx={idx} />
+          ))}
       </div>
     </section>
   )
@@ -62,4 +82,18 @@ async function getWarriors() {
   })
   if (res.status === 200) return res.json()
   throw new Error('failed to authenticate user')
+}
+
+async function fetchNewActivities() {
+  const res = await fetch('/api/strava/getActivitiesForAllUsers', {
+    method: 'GET',
+    credentials: 'include',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Credentials': true,
+    },
+  })
+  if (res.status === 200) return res.json()
+  throw new Error('failed to fetch new activities')
 }
