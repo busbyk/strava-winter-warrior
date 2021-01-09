@@ -22,7 +22,7 @@ const strategy = new StravaStrategy(
   {
     clientID: STRAVA_CLIENT_ID,
     clientSecret: STRAVA_CLIENT_SECRET,
-    callbackURL: '/auth/strava/callback',
+    callbackURL: '/api/auth/strava/callback',
   },
   async (accessToken, refreshToken, params, profile, done) => {
     try {

@@ -19,7 +19,7 @@ export default function Scoreboard() {
 
   return (
     <section className='section'>
-      <div className='container'>
+      <div className='container is-max-desktop'>
         {error && (
           <div class='notification is-warning'>
             <p>
@@ -49,7 +49,7 @@ export default function Scoreboard() {
 }
 
 async function getWarriors() {
-  const res = await fetch('/strava/warriors', {
+  const res = await fetch('/api/strava/warriors', {
     method: 'GET',
     credentials: 'include',
     headers: {

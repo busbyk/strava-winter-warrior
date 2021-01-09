@@ -23,7 +23,7 @@ export default function WarriorCard(props) {
         <div className='media-content'>
           <div className='content'>
             <p>
-              <a href={`https://www.strava.com/athelete/${stravaId}`}>
+              <a href={`https://www.strava.com/athletes/${stravaId}`}>
                 <strong>{displayName || `${firstname} ${lastname}`}</strong>
               </a>
             </p>

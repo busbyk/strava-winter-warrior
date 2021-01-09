@@ -7,7 +7,6 @@ require('./strava-passport')
 const authRoutes = require('./routes/auth')
 const stravaRoutes = require('./routes/strava')
 const { COOKIE_KEY, MONGODB_URI, PORT } = require('./config/default')
-const cors = require('cors')
 const mongoose = require('mongoose')
 const cookieParser = require('cookie-parser')
 const User = require('./models/user-model')
@@ -18,7 +17,7 @@ mongoose.connect(
   MONGODB_URI,
   { useNewUrlParser: true, useUnifiedTopology: true },
   () => {
-    console.log('connected to mongo db')
+    console.log('mongoose.connect() executed successfully')
   }
 )
 
@@ -35,15 +34,7 @@ app.use(cookieParser())
 app.use(passport.initialize())
 app.use(passport.session())
 
-// app.use(
-//   cors({
-//     origin: 'http://localhost:3000',
-//     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-//     credentials: true,
-//   })
-// )
-
-app.use('/auth', authRoutes)
+app.use('/api/auth', authRoutes)
 
 const ensureAuthenticated = async (req, res, next) => {
   if (!req.user) {
@@ -85,25 +76,23 @@ const ensureAuthenticated = async (req, res, next) => {
   }
 }
 
-app.use('/strava', ensureAuthenticated, stravaRoutes)
+app.use('/api/strava', ensureAuthenticated, stravaRoutes)
 
-// app.get('/', ensureAuthenticated, (req, res) => {
-//   res.status(200).json({
-//     authenticated: true,
-//     message: 'user successfully authenticated',
-//     user: req.user,
-//     cookies: req.cookies,
-//   })
-// })
-
-app.get('/user', ensureAuthenticated, (req, res) => {
+app.get('/api/user', ensureAuthenticated, (req, res) => {
   res.status(200).json(req.user)
 })
 
-app.use(express.static(path.join(__dirname, 'client/build')))
+if (isProduction()) {
+  app.use(express.static(path.join(__dirname, 'client/build')))
 
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname + '/client/build/index.html'))
-})
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname + '/client/build/index.html'))
+  })
+}
 
-app.listen(PORT, () => console.log(`Server is running on port ${PORT}!`))
+function isProduction() {
+  return process.env.NODE_ENV === 'production'
+}
+
+let port = isProduction() ? PORT : 3001
+app.listen(port, () => console.log(`Server is running on port ${port}!`))

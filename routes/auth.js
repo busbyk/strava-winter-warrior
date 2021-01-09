@@ -1,6 +1,7 @@
 const router = require('express').Router()
 const passport = require('passport')
-const CLIENT_HOME_PAGE_URL = '/'
+const CLIENT_HOME_PAGE_URL =
+  process.env.NODE_ENV === 'production' ? '/' : 'http://localhost:3000/'
 
 router.get('/login/success', (req, res) => {
   if (req.user) {
@@ -34,7 +35,7 @@ router.get(
   '/strava/callback',
   passport.authenticate('strava', {
     successRedirect: CLIENT_HOME_PAGE_URL,
-    failureRedirect: '/auth/login/failed',
+    failureRedirect: '/api/auth/login/failed',
   })
 )
 

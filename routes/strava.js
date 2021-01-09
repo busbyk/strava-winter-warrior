@@ -20,8 +20,13 @@ router.get('/warriors', async (req, res, next) => {
     const scores = await getWarriors(req.user.accessToken)
     res.status(200).json(scores)
   } catch (err) {
-    console.error(err)
-    res.status(500)
+    console.error('Error in getWarriors(): ', err)
+
+    if ((err = 'Error: Yer not in the club dude')) {
+      res.status(500).json({ error: true, msg: 'User is not in the club' })
+    } else {
+      res.status(500).json({ msg: 'Internal server error' })
+    }
   }
 })
 
@@ -32,8 +37,8 @@ router.get('/getActivitiesForAllUsers', async (req, res, next) => {
     await Promise.all(
       allUsers.map(async (user) => {
         const strava = new stravaApi.client(user.accessToken)
-        const startDateEpoch = Math.floor(+new Date('October 01, 2020') / 1000)
-        const endDateEpoch = Math.floor(+new Date('November 01, 2020') / 1000)
+        const startDateEpoch = Math.floor(+new Date('January 01, 2021') / 1000)
+        const endDateEpoch = Math.floor(+new Date('February 01, 2021') / 1000)
         const activities = await strava.athlete.listActivities({
           before: endDateEpoch,
           after: startDateEpoch,
