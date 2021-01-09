@@ -43,7 +43,7 @@ const getWarriors = async function (accessToken) {
         } else {
           return Object.assign(warrior, {
             hasRegistered: false,
-            score: 0,
+            score: null,
           })
         }
       })

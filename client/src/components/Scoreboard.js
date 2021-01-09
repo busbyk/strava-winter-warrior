@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import WarriorCard from './WarriorCard'
+import ProgressBar from './ProgressBar'
 
 export default function Scoreboard() {
   const [warriors, setWarriors] = useState(null)
@@ -42,6 +43,7 @@ export default function Scoreboard() {
             </p>
           </div>
         )}
+        <ProgressBar />
         {warriors && warriors.map((warrior) => <WarriorCard user={warrior} />)}
       </div>
     </section>
