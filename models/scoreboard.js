@@ -74,7 +74,13 @@ const makeScore = function (activities) {
   const numActivities = activities.length
 
   const daysMissed = 0
-  const score = activities.length * 10
+
+  let score = 0
+  score += numDaysActive
+  score = activities
+    .map((activity) => activity.distance / 5280)
+    .reduce((accum, cur) => (accum += cur), score)
+  score = score.toFixed(1)
 
   return [numDaysActive, score, daysMissed, numActivities]
 }

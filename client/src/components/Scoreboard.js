@@ -10,13 +10,15 @@ export default function Scoreboard() {
   useEffect(() => {
     async function fetchData() {
       try {
-        try {
-          await fetchNewActivities()
-        } catch (err) {
-          console.log(
-            "couldn't fetch new activities for warriors, error: ",
-            err
-          )
+        if (window.location.hostname !== 'localhost') {
+          try {
+            await fetchNewActivities()
+          } catch (err) {
+            console.log(
+              "couldn't fetch new activities for warriors, error: ",
+              err
+            )
+          }
         }
         const warriors = await getWarriors()
         setWarriors(warriors)
@@ -61,10 +63,7 @@ export default function Scoreboard() {
           </div>
         )}
         {!loading && <ProgressBar />}
-        {warriors &&
-          warriors.map((warrior, idx) => (
-            <WarriorCard user={warrior} idx={idx} />
-          ))}
+        {warriors && warriors.map((warrior) => <WarriorCard user={warrior} />)}
       </div>
     </section>
   )
