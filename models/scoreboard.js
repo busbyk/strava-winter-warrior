@@ -1,6 +1,12 @@
 const stravaApi = require('strava-v3')
 const User = require('../models/user-model')
 const Activity = require('../models/activity-model')
+const { match } = require('assert')
+
+let datesInMonth = []
+for (let i = 1; i <= 31; i++) {
+  datesInMonth.push(i)
+}
 
 const getWarriors = async function (accessToken) {
   const strava = new stravaApi.client(accessToken)
@@ -70,19 +76,61 @@ const getActivitiesForUser = async function (stravaId) {
 }
 
 const makeScore = function (activities) {
-  const numDaysActive = activities.length //TODO update this to count unique days cuz peeps could have multiple activities on the same day
   const numActivities = activities.length
+  const activitiesByDate = sortActivitiesByDate(activities, datesInMonth)
 
-  const daysMissed = 0
+  let numDaysActive = 0
+  let daysMissed = 0
+
+  activitiesByDate.forEach((activities) => {
+    console.log('activities.length: ', activities.length)
+    if (activities.length > 0) {
+      numDaysActive++
+    } else {
+      daysMissed++
+    }
+  })
 
   let score = 0
-  score += numDaysActive
+  score += numDaysActive * 10
+  score -= daysMissed * 10
   score = activities
-    .map((activity) => activity.distance / 5280)
+    .filter((activity) => isValidActivityType(activity.type))
+    .map((activity) => activity.distance / 5280) // feet to miles
     .reduce((accum, cur) => (accum += cur), score)
   score = score.toFixed(1)
 
   return [numDaysActive, score, daysMissed, numActivities]
 }
 
-module.exports = getWarriors
+const sortActivitiesByDate = function (activities, dates) {
+  const dateToday = new Date().getDate()
+
+  let jan = new Date('January, 2021')
+  let activitiesByDate = []
+
+  dates.forEach((date) => {
+    const searchDate = new Date(jan.setDate(date))
+    const matchingActivities = activities.filter((activity) => {
+      const activityDate = new Date(activity.startDate)
+
+      return (
+        searchDate.getFullYear() === activityDate.getFullYear() &&
+        searchDate.getMonth() === activityDate.getMonth() &&
+        searchDate.getDate() === activityDate.getDate() &&
+        isValidActivityType(activity.type)
+      )
+    })
+
+    activitiesByDate.push(matchingActivities)
+  })
+
+  return activitiesByDate.slice(0, dateToday)
+}
+
+const isValidActivityType = function (type) {
+  const validTypes = ['BackcountrySki', 'Hike', 'Run', 'Snowshoe', 'Walk']
+  return validTypes.includes(type)
+}
+
+module.exports = { getWarriors, sortActivitiesByDate, isValidActivityType }

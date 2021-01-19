@@ -1,8 +1,9 @@
 const stravaApi = require('strava-v3')
 const router = require('express').Router()
-const getWarriors = require('../models/scoreboard')
+const { getWarriors, isValidActivityType } = require('../models/scoreboard')
 const User = require('../models/user-model')
 const Activity = require('../models/activity-model')
+const refresh = require('passport-oauth2-refresh')
 
 router.get('/clubs', async (req, res, next) => {
   const strava = new stravaApi.client(req.user.accessToken)
@@ -14,7 +15,7 @@ router.get('/clubs', async (req, res, next) => {
   }
 })
 
-router.get('/warriors', async (req, res, next) => {
+router.get('/warriors', async (req, res) => {
   const strava = new stravaApi.client(req.user.accessToken)
   try {
     const scores = await getWarriors(req.user.accessToken)
@@ -30,7 +31,25 @@ router.get('/warriors', async (req, res, next) => {
   }
 })
 
-router.get('/getActivitiesForAllUsers', async (req, res, next) => {
+router.get('/listUserActivities/:athleteId', async (req, res) => {
+  const athleteId = req.params.athleteId
+  const activities = await Activity.find().where('athleteId').equals(athleteId)
+  const shortActivities = activities.map((activity) => {
+    const shortAct = {
+      name: activity.name,
+      date: new Date(activity.startDate).toDateString(),
+      activityId: activity.activityId,
+      distance: activity.distance,
+      miles: (activity.distance / 5280).toFixed(1),
+      type: activity.type,
+      valid: isValidActivityType(activity.type),
+    }
+    return shortAct
+  })
+  res.status(200).json(shortActivities)
+})
+
+router.get('/getActivitiesForAllUsers', async (req, res) => {
   const allUsers = await User.find({})
 
   try {
@@ -39,10 +58,45 @@ router.get('/getActivitiesForAllUsers', async (req, res, next) => {
         const strava = new stravaApi.client(user.accessToken)
         const startDateEpoch = Math.floor(+new Date('January 01, 2021') / 1000)
         const endDateEpoch = Math.floor(+new Date('February 01, 2021') / 1000)
-        const activities = await strava.athlete.listActivities({
-          before: endDateEpoch,
-          after: startDateEpoch,
-        })
+
+        let activities
+        try {
+          activities = await strava.athlete.listActivities({
+            before: endDateEpoch,
+            after: startDateEpoch,
+          })
+        } catch (err) {
+          const body = err.response.body
+          if (
+            body.errors &&
+            body.errors[0].code === 'invalid' &&
+            body.errors[0].field === 'access_token'
+          ) {
+            await refresh.requestNewAccessToken(
+              'strava',
+              user.refreshToken,
+              async (err, accessToken, refreshToken) => {
+                if (err) {
+                  throw new Error(
+                    'error refreshing token for ',
+                    user.displayName
+                  )
+                }
+                user.accessToken = accessToken
+                user.refreshToken = refreshToken
+                await user.save()
+              }
+            )
+            const refreshedStrava = new stravaApi.client(user.accessToken)
+            activities = await refreshedStrava.athlete.listActivities({
+              before: endDateEpoch,
+              after: startDateEpoch,
+            })
+          } else {
+            throw new Error(err)
+          }
+        }
+
         await Promise.all(
           activities.map(async (activity) => {
             try {
