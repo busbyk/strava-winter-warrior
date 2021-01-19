@@ -40,7 +40,7 @@ router.get('/listUserActivities/:athleteId', async (req, res) => {
       date: new Date(activity.startDate).toDateString(),
       activityId: activity.activityId,
       distance: activity.distance,
-      miles: (activity.distance / 5280).toFixed(1),
+      miles: (activity.distance / 1609.34).toFixed(1),
       type: activity.type,
       valid: isValidActivityType(activity.type),
     }

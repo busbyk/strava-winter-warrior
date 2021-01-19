@@ -96,7 +96,7 @@ const makeScore = function (activities) {
   score -= daysMissed * 10
   score = activities
     .filter((activity) => isValidActivityType(activity.type))
-    .map((activity) => activity.distance / 5280) // feet to miles
+    .map((activity) => activity.distance / 1609.34) // meters to miles
     .reduce((accum, cur) => (accum += cur), score)
   score = score.toFixed(1)
 
