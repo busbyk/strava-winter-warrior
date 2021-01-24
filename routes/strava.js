@@ -5,6 +5,8 @@ const User = require('../models/user-model')
 const Activity = require('../models/activity-model')
 const refresh = require('passport-oauth2-refresh')
 
+const forceUpdate = process.env.forceUpdate || false
+
 router.get('/clubs', async (req, res, next) => {
   const strava = new stravaApi.client(req.user.accessToken)
   try {
@@ -59,6 +61,7 @@ router.get('/getActivitiesForAllUsers', async (req, res) => {
     await Promise.all(
       allUsers.map(async (user) => {
         if (
+          forceUpdate ||
           !user.activitiesLastUpdatedTime ||
           new Date().getTime() - user.activitiesLastUpdatedTime > 900000
         ) {
@@ -77,6 +80,7 @@ router.get('/getActivitiesForAllUsers', async (req, res) => {
             activities = await strava.athlete.listActivities({
               before: endDateEpoch,
               after: startDateEpoch,
+              per_page: 80,
             })
           } catch (err) {
             const body = err.response.body
@@ -104,6 +108,7 @@ router.get('/getActivitiesForAllUsers', async (req, res) => {
               activities = await refreshedStrava.athlete.listActivities({
                 before: endDateEpoch,
                 after: startDateEpoch,
+                per_page: 80,
               })
             } else {
               throw new Error(err)
