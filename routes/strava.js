@@ -60,7 +60,7 @@ router.get('/getActivitiesForAllUsers', async (req, res) => {
       allUsers.map(async (user) => {
         if (
           !user.activitiesLastUpdatedTime ||
-          user.activitiesLastUpdatedTime < new Date().getTime() - 900000
+          new Date().getTime() - user.activitiesLastUpdatedTime > 900000
         ) {
           console.log(
             'pulling new activities for ',
