@@ -37,7 +37,10 @@ router.get('/listUserActivities/:athleteId', async (req, res) => {
   const shortActivities = activities.map((activity) => {
     const shortAct = {
       name: activity.name,
-      date: new Date(activity.startDate).toDateString(),
+      date: (() => {
+        const date = new Date(activity.startDate)
+        return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+      })(),
       activityId: activity.activityId,
       distance: activity.distance,
       miles: (activity.distance / 1609.34).toFixed(1),
@@ -55,69 +58,94 @@ router.get('/getActivitiesForAllUsers', async (req, res) => {
   try {
     await Promise.all(
       allUsers.map(async (user) => {
-        const strava = new stravaApi.client(user.accessToken)
-        const startDateEpoch = Math.floor(+new Date('January 01, 2021') / 1000)
-        const endDateEpoch = Math.floor(+new Date('February 01, 2021') / 1000)
+        if (
+          !user.activitiesLastUpdatedTime ||
+          user.activitiesLastUpdatedTime < new Date().getTime() - 900000
+        ) {
+          console.log(
+            'pulling new activities for ',
+            user.displayName || user.firstname
+          )
+          const strava = new stravaApi.client(user.accessToken)
+          const startDateEpoch = Math.floor(
+            +new Date('January 01, 2021') / 1000
+          )
+          const endDateEpoch = Math.floor(+new Date('February 01, 2021') / 1000)
 
-        let activities
-        try {
-          activities = await strava.athlete.listActivities({
-            before: endDateEpoch,
-            after: startDateEpoch,
-          })
-        } catch (err) {
-          const body = err.response.body
-          if (
-            body.errors &&
-            body.errors[0].code === 'invalid' &&
-            body.errors[0].field === 'access_token'
-          ) {
-            await refresh.requestNewAccessToken(
-              'strava',
-              user.refreshToken,
-              async (err, accessToken, refreshToken) => {
-                if (err) {
-                  throw new Error(
-                    'error refreshing token for ',
-                    user.displayName
-                  )
-                }
-                user.accessToken = accessToken
-                user.refreshToken = refreshToken
-                await user.save()
-              }
-            )
-            const refreshedStrava = new stravaApi.client(user.accessToken)
-            activities = await refreshedStrava.athlete.listActivities({
+          let activities
+          try {
+            activities = await strava.athlete.listActivities({
               before: endDateEpoch,
               after: startDateEpoch,
             })
-          } else {
-            throw new Error(err)
-          }
-        }
-
-        await Promise.all(
-          activities.map(async (activity) => {
-            try {
-              const newActivity = await new Activity({
-                name: activity.name,
-                startDate: activity.start_date,
-                athleteId: activity.athlete.id,
-                distance: activity.distance,
-                type: activity.type,
-                activityId: activity.id,
-              }).save()
-            } catch (err) {
-              if (err.message.indexOf('duplicate key error') === -1) {
-                throw err
-              }
-              console.log(
-                `Activity with id ${activity.id} already exists in the db`
+          } catch (err) {
+            const body = err.response.body
+            if (
+              body.errors &&
+              body.errors[0].code === 'invalid' &&
+              body.errors[0].field === 'access_token'
+            ) {
+              await refresh.requestNewAccessToken(
+                'strava',
+                user.refreshToken,
+                async (err, accessToken, refreshToken) => {
+                  if (err) {
+                    throw new Error(
+                      'error refreshing token for ',
+                      user.displayName
+                    )
+                  }
+                  user.accessToken = accessToken
+                  user.refreshToken = refreshToken
+                  await user.save()
+                }
               )
+              const refreshedStrava = new stravaApi.client(user.accessToken)
+              activities = await refreshedStrava.athlete.listActivities({
+                before: endDateEpoch,
+                after: startDateEpoch,
+              })
+            } else {
+              throw new Error(err)
             }
-          })
-        )
+          }
+
+          await Promise.all(
+            activities.map(async (activity) => {
+              try {
+                const newActivity = await new Activity({
+                  name: activity.name,
+                  startDate: activity.start_date,
+                  athleteId: activity.athlete.id,
+                  distance: activity.distance,
+                  type: activity.type,
+                  activityId: activity.id,
+                }).save()
+              } catch (err) {
+                if (err.message.indexOf('duplicate key error') === -1) {
+                  throw err
+                }
+                console.log(
+                  `Activity with id ${activity.id} already exists in the db`
+                )
+              }
+            })
+          )
+
+          const now = new Date()
+          user.activitiesLastUpdatedTime = now.getTime()
+          console.log(
+            'updating user with activitiesLastUpdatedTime of: ',
+            now.toTimeString()
+          )
+          await user.save()
+        } else {
+          console.log('not refreshing activities for ', user.displayName)
+          console.log(
+            'last activity update time: ',
+            new Date(user.activitiesLastUpdatedTime).toTimeString()
+          )
+        }
       })
     )
     res.status(200).json({

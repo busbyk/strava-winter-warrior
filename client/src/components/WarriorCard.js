@@ -1,6 +1,9 @@
 import ScoreAttribute from './ScoreAttribute'
+import { Link } from 'react-router-dom'
+import { useAuth } from '../hooks/use-auth'
 
 export default function WarriorCard(props) {
+  const auth = useAuth()
   const {
     displayName,
     firstname,
@@ -39,6 +42,19 @@ export default function WarriorCard(props) {
                   />
                 </div>
               )}
+              {numDaysActive && (
+                <div className='level-item'>
+                  <ScoreAttribute
+                    heading='Num Days Active'
+                    value={numDaysActive}
+                  />
+                </div>
+              )}
+              {daysMissed !== null && daysMissed !== undefined && (
+                <div className='level-item'>
+                  <ScoreAttribute heading='Days Missed' value={daysMissed} />
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -63,6 +79,11 @@ export default function WarriorCard(props) {
                 alt='Profile'
               />
             </figure>
+            {auth.user.displayName === displayName && (
+              <button className='button is-small mt-2'>
+                <Link to={`/activities/${stravaId}`}>View Activities</Link>
+              </button>
+            )}
           </div>
         </div>
       </article>

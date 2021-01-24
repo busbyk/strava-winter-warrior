@@ -10,16 +10,7 @@ export default function Scoreboard() {
   useEffect(() => {
     async function fetchData() {
       try {
-        if (window.location.hostname !== 'localhost') {
-          try {
-            await fetchNewActivities()
-          } catch (err) {
-            console.log(
-              "couldn't fetch new activities for warriors, error: ",
-              err
-            )
-          }
-        }
+        await fetchNewActivities()
         const warriors = await getWarriors()
         setWarriors(warriors)
         setLoading(false)

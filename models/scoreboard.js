@@ -83,7 +83,6 @@ const makeScore = function (activities) {
   let daysMissed = 0
 
   activitiesByDate.forEach((activities) => {
-    console.log('activities.length: ', activities.length)
     if (activities.length > 0) {
       numDaysActive++
     } else {
