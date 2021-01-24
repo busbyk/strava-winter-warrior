@@ -1,7 +1,6 @@
 const stravaApi = require('strava-v3')
 const User = require('../models/user-model')
 const Activity = require('../models/activity-model')
-const { match } = require('assert')
 
 let datesInMonth = []
 for (let i = 1; i <= 31; i++) {
@@ -67,6 +66,7 @@ const getWarriors = async function (accessToken) {
 
     return warriors
   } else {
+    console.log('Club list: ', clubs)
     throw new Error('Yer not in the club dude')
   }
 }

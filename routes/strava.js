@@ -26,6 +26,9 @@ router.get('/warriors', async (req, res) => {
     console.error('Error in getWarriors(): ', err)
 
     if ((err = 'Error: Yer not in the club dude')) {
+      console.error(
+        'User ' + req.user.displayName + ' is apparently not in the club'
+      )
       res.status(500).json({ error: true, msg: 'User is not in the club' })
     } else {
       res.status(500).json({ msg: 'Internal server error' })
