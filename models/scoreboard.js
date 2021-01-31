@@ -89,7 +89,7 @@ const makeScore = function (activities) {
     ) {
       numDaysActive++
     } else {
-      if (isSameDate(activitiesObj.date, new Date())) {
+      if (!isSameDate(activitiesObj.date, new Date())) {
         daysMissed++
       }
     }
@@ -102,7 +102,7 @@ const makeScore = function (activities) {
     .filter((activity) => isValidActivityType(activity.type))
     .map((activity) => activity.distance / 1609.34) // meters to miles
     .reduce((accum, cur) => (accum += cur), score)
-  score = score.toFixed(1)
+  score = score.toFixed(2)
 
   return [numDaysActive, score, daysMissed, numActivities]
 }
