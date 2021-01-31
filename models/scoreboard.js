@@ -82,11 +82,16 @@ const makeScore = function (activities) {
   let numDaysActive = 0
   let daysMissed = 0
 
-  activitiesByDate.forEach((activities) => {
-    if (activities.length > 0) {
+  activitiesByDate.forEach((activitiesObj) => {
+    if (
+      activitiesObj.activities.length > 0 &&
+      activitiesObj.distance / 1609.34 >= 1
+    ) {
       numDaysActive++
     } else {
-      daysMissed++
+      if (isSameDate(activitiesObj.date, new Date())) {
+        daysMissed++
+      }
     }
   })
 
@@ -114,17 +119,32 @@ const sortActivitiesByDate = function (activities, dates) {
       const activityDate = new Date(activity.startDate)
 
       return (
-        searchDate.getFullYear() === activityDate.getFullYear() &&
-        searchDate.getMonth() === activityDate.getMonth() &&
-        searchDate.getDate() === activityDate.getDate() &&
+        isSameDate(searchDate, activityDate) &&
         isValidActivityType(activity.type)
       )
     })
 
-    activitiesByDate.push(matchingActivities)
+    activitiesObj = {
+      date: searchDate,
+      distance: matchingActivities.reduce(
+        (acc, curVal) => acc + curVal.distance,
+        0
+      ),
+      activities: matchingActivities,
+    }
+
+    activitiesByDate.push(activitiesObj)
   })
 
   return activitiesByDate.slice(0, dateToday)
+}
+
+const isSameDate = function (date1, date2) {
+  return (
+    date1.getFullYear() === date2.getFullYear() &&
+    date1.getMonth() === date2.getMonth() &&
+    date1.getDate() === date2.getDate()
+  )
 }
 
 const isValidActivityType = function (type) {
