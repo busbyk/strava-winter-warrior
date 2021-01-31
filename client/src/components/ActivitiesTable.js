@@ -1,6 +1,8 @@
 import React from 'react'
-import { useTable, useSortBy } from 'react-table'
+import { useTable, useSortBy, useGroupBy } from 'react-table'
 import { CSVLink } from 'react-csv'
+
+const individualActivitiesColumns = ['name', 'type']
 
 function formatTableForCSV(rows) {
   return rows.map((row) => row.values)
@@ -29,25 +31,50 @@ export default function ReportTable(props) {
       {
         Header: 'Miles',
         accessor: 'miles',
+        aggregate: 'sum',
       },
       {
         Header: 'Type',
         accessor: 'type',
       },
-      {
-        Header: 'Valid?',
-        accessor: 'valid',
-        Cell: ({ value }) => value.toString(),
-      },
     ],
     []
   )
+
+  function toggleAggregatedView(e) {
+    const { target } = e
+
+    if (!target.className.includes('is-active')) {
+      toggleGroupBy('date')
+      setHiddenColumns((oldHiddenColumns) =>
+        oldHiddenColumns === individualActivitiesColumns
+          ? []
+          : individualActivitiesColumns
+      )
+      toggleTransactionViewButtons(target)
+    }
+  }
+
+  function toggleTransactionViewButtons(target) {
+    const activeClasses = ' is-link is-light is-active'
+    const baseClasses = 'button is-small'
+    const ids = ['by-day', 'individual']
+
+    const otherId = ids.find((i) => i !== target.id)
+
+    target.className += activeClasses
+    document.getElementById(otherId).className = baseClasses
+  }
 
   let { data } = props
   data = React.useMemo(() => data, [data])
 
   const initialState = React.useMemo(() => {
-    return { sortBy: [{ id: 'date' }] }
+    return {
+      groupBy: ['date'],
+      sortBy: [{ id: 'date' }],
+      hiddenColumns: individualActivitiesColumns,
+    }
   }, [])
 
   const {
@@ -56,7 +83,9 @@ export default function ReportTable(props) {
     headerGroups,
     rows,
     prepareRow,
-  } = useTable({ columns, data, initialState }, useSortBy)
+    toggleGroupBy,
+    setHiddenColumns,
+  } = useTable({ columns, data, initialState }, useGroupBy, useSortBy)
 
   return (
     <div>
@@ -70,6 +99,24 @@ export default function ReportTable(props) {
           <div className='level-item'>
             <div className='level'>
               <div className='level-right'>
+                <div className='level-item'>
+                  <div className='buttons has-addons'>
+                    <button
+                      className='button is-small is-link is-light is-active'
+                      id='by-day'
+                      onClick={toggleAggregatedView}
+                    >
+                      Group By Day
+                    </button>
+                    <button
+                      className='button is-small'
+                      id='individual'
+                      onClick={toggleAggregatedView}
+                    >
+                      Individual Activities
+                    </button>
+                  </div>
+                </div>
                 <div className='level-item'>
                   <CSVLink
                     data={formatTableForCSV(rows)}

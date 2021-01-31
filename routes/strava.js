@@ -39,21 +39,25 @@ router.get('/warriors', async (req, res) => {
 router.get('/listUserActivities/:athleteId', async (req, res) => {
   const athleteId = req.params.athleteId
   const activities = await Activity.find().where('athleteId').equals(athleteId)
-  const shortActivities = activities.map((activity) => {
-    const shortAct = {
-      name: activity.name,
-      date: (() => {
-        const date = new Date(activity.startDate)
-        return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
-      })(),
-      activityId: activity.activityId,
-      distance: activity.distance,
-      miles: (activity.distance / 1609.34).toFixed(1),
-      type: activity.type,
-      valid: isValidActivityType(activity.type),
-    }
-    return shortAct
-  })
+  const shortActivities = activities
+    .map((activity) => {
+      return isValidActivityType(activity.type)
+        ? {
+            name: activity.name,
+            date: (() => {
+              const date = new Date(activity.startDate)
+              return `${date.getFullYear()}-${
+                date.getMonth() + 1
+              }-${date.getDate()}`
+            })(),
+            activityId: activity.activityId,
+            distance: activity.distance,
+            miles: parseInt((activity.distance / 1609.34).toFixed(1)),
+            type: activity.type,
+          }
+        : null
+    })
+    .filter((activity) => activity !== null)
   res.status(200).json(shortActivities)
 })
 

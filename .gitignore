@@ -26,3 +26,6 @@ yarn-error.log*
 
 # build
 /**/build
+
+# development
+client/.eslintcache
