@@ -32,6 +32,7 @@ export default function ReportTable(props) {
         Header: 'Miles',
         accessor: 'miles',
         aggregate: 'sum',
+        Aggregated: ({ value }) => `${value.toFixed(2)}`,
       },
       {
         Header: 'Type',
@@ -160,7 +161,13 @@ export default function ReportTable(props) {
             return (
               <tr {...row.getRowProps()}>
                 {row.cells.map((cell) => {
-                  return <td {...cell.getCellProps()}>{cell.render('Cell')}</td>
+                  return (
+                    <td {...cell.getCellProps()}>
+                      {cell.isAggregated
+                        ? cell.render('Aggregated')
+                        : cell.render('Cell')}
+                    </td>
+                  )
                 })}
               </tr>
             )

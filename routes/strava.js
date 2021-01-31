@@ -52,7 +52,7 @@ router.get('/listUserActivities/:athleteId', async (req, res) => {
             })(),
             activityId: activity.activityId,
             distance: activity.distance,
-            miles: parseInt((activity.distance / 1609.34).toFixed(1)),
+            miles: parseFloat((activity.distance / 1609.34).toFixed(2)),
             type: activity.type,
           }
         : null
