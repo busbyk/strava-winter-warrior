@@ -1,6 +1,6 @@
 import ScoreAttribute from './ScoreAttribute'
-import { Link } from 'react-router-dom'
-import { useAuth } from '../hooks/use-auth'
+import {Link} from 'react-router-dom'
+import {useAuth} from '../hooks/use-auth'
 
 export default function WarriorCard(props) {
   const auth = useAuth()
@@ -29,12 +29,12 @@ export default function WarriorCard(props) {
                   </p>
                 </div>
               )}
-              {score && (
+              {score !== null && numActivities !== undefined && (
                 <div className='level-item'>
                   <ScoreAttribute heading='Score' value={score} />
                 </div>
               )}
-              {numActivities && (
+              {numActivities !== null && numActivities !== undefined && (
                 <div className='level-item'>
                   <ScoreAttribute
                     heading='Num Activites'
@@ -42,7 +42,7 @@ export default function WarriorCard(props) {
                   />
                 </div>
               )}
-              {numDaysActive && (
+              {numDaysActive !== null && numDaysActive !== undefined && (
                 <div className='level-item'>
                   <ScoreAttribute
                     heading='Num Days Active'
