@@ -56,13 +56,11 @@ const getWarriors = async function (accessToken) {
     )
 
     warriors.sort((a, b) => {
-      if (a.score > b.score) {
-        return -1
-      }
-      if (a.score < b.score) {
-        return 1
-      }
-      return 0
+      return (
+        (a.score === null) - (b.score === null) ||
+        +(a.score < b.score) ||
+        -(a.score > b.score)
+      )
     })
 
     return warriors
