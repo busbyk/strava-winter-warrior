@@ -149,7 +149,7 @@ const isSameDate = function (date1, date2) {
 }
 
 const isValidActivityType = function (type) {
-  const validTypes = ['BackcountrySki', 'Hike', 'Run', 'Snowshoe', 'Walk']
+  const validTypes = ['Hike', 'Run', 'Snowshoe', 'Walk']
   return validTypes.includes(type)
 }
 
