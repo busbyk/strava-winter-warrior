@@ -1,6 +1,7 @@
 import NavBar from './components/NavBar'
 import Scoreboard from './components/Scoreboard'
 import LandingPage from './components/LandingPage'
+import ActivitiesList from './components/ActivitiesList'
 import {
   BrowserRouter as Router,
   Switch,
@@ -20,6 +21,9 @@ export default function App() {
           </Route>
           <PrivateRoute path='/scoreboard'>
             <Scoreboard />
+          </PrivateRoute>
+          <PrivateRoute path='/activities/:athleteId'>
+            <ActivitiesList />
           </PrivateRoute>
         </Switch>
       </Router>

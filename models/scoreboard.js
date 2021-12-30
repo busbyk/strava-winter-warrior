@@ -2,15 +2,22 @@ const stravaApi = require('strava-v3')
 const User = require('../models/user-model')
 const Activity = require('../models/activity-model')
 
+const CLUB = process.env.CHALLENGE_CLUB
+
+let datesInMonth = []
+for (let i = 1; i <= 31; i++) {
+  datesInMonth.push(i)
+}
+
 const getWarriors = async function (accessToken) {
   const strava = new stravaApi.client(accessToken)
   const clubs = await strava.athlete.listClubs({})
-  const club = clubs.find((club) => club.name === 'Winter Warrior 2021')
+  const club = clubs.find((club) => club.name === CLUB)
 
   if (club) {
-    const { id } = club
-    const members = await strava.clubs.listMembers({ id: id })
-    let warriors = members.map(({ firstname, lastname }) => ({
+    const {id} = club
+    const members = await strava.clubs.listMembers({id: id})
+    let warriors = members.map(({firstname, lastname}) => ({
       firstname,
       lastname,
     }))
@@ -26,9 +33,8 @@ const getWarriors = async function (accessToken) {
         })
         if (registeredUser) {
           const activities = await getActivitiesForUser(registeredUser.stravaId)
-          const [numDaysActive, score, daysMissed, numActivities] = makeScore(
-            activities
-          )
+          const [numDaysActive, score, daysMissed, numActivities] =
+            makeScore(activities)
           return Object.assign(warrior, {
             hasRegistered: true,
             displayName: registeredUser.displayName,
@@ -43,7 +49,7 @@ const getWarriors = async function (accessToken) {
         } else {
           return Object.assign(warrior, {
             hasRegistered: false,
-            score: 0,
+            score: null,
           })
         }
       })
@@ -61,6 +67,7 @@ const getWarriors = async function (accessToken) {
 
     return warriors
   } else {
+    console.log('Club list: ', clubs)
     throw new Error('Yer not in the club dude')
   }
 }
@@ -70,13 +77,80 @@ const getActivitiesForUser = async function (stravaId) {
 }
 
 const makeScore = function (activities) {
-  const numDaysActive = activities.length //TODO update this to count unique days cuz peeps could have multiple activities on the same day
   const numActivities = activities.length
+  const activitiesByDate = sortActivitiesByDate(activities, datesInMonth)
 
-  const daysMissed = 0
-  const score = activities.length * 10
+  let numDaysActive = 0
+  let daysMissed = 0
+
+  activitiesByDate.forEach((activitiesObj) => {
+    if (
+      activitiesObj.activities.length > 0 &&
+      activitiesObj.distance / 1609.34 >= 1
+    ) {
+      numDaysActive++
+    } else {
+      if (!isSameDate(activitiesObj.date, new Date())) {
+        daysMissed++
+      }
+    }
+  })
+
+  let score = 0
+  score += numDaysActive * 10
+  score -= daysMissed * 10
+  score = activities
+    .filter((activity) => isValidActivityType(activity.type))
+    .map((activity) => activity.distance / 1609.34) // meters to miles
+    .reduce((accum, cur) => (accum += cur), score)
+  score = score.toFixed(2)
 
   return [numDaysActive, score, daysMissed, numActivities]
 }
 
-module.exports = getWarriors
+const sortActivitiesByDate = function (activities, dates) {
+  const dateToday = new Date().getDate()
+
+  let jan = new Date('January, 2022')
+  let activitiesByDate = []
+
+  dates.forEach((date) => {
+    const searchDate = new Date(jan.setDate(date))
+    const matchingActivities = activities.filter((activity) => {
+      const activityDate = new Date(activity.startDate)
+
+      return (
+        isSameDate(searchDate, activityDate) &&
+        isValidActivityType(activity.type)
+      )
+    })
+
+    activitiesObj = {
+      date: searchDate,
+      distance: matchingActivities.reduce(
+        (acc, curVal) => acc + curVal.distance,
+        0
+      ),
+      activities: matchingActivities,
+    }
+
+    activitiesByDate.push(activitiesObj)
+  })
+
+  return activitiesByDate.slice(0, dateToday)
+}
+
+const isSameDate = function (date1, date2) {
+  return (
+    date1.getFullYear() === date2.getFullYear() &&
+    date1.getMonth() === date2.getMonth() &&
+    date1.getDate() === date2.getDate()
+  )
+}
+
+const isValidActivityType = function (type) {
+  const validTypes = ['BackcountrySki', 'Hike', 'Run', 'Snowshoe', 'Walk']
+  return validTypes.includes(type)
+}
+
+module.exports = {getWarriors, sortActivitiesByDate, isValidActivityType}

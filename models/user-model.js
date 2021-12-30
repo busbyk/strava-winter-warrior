@@ -11,6 +11,7 @@ const userSchema = new Schema({
   accessToken: String,
   refreshToken: String,
   tokenExpiresAt: Number,
+  activitiesLastUpdatedTime: Number,
 })
 
 const User = mongoose.model('user', userSchema)
