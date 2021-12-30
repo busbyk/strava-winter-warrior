@@ -11,6 +11,7 @@
     "build": "cd client && npm run build",
     "test": "jest ./tests",
     "heroku-postbuild": "cd client && npm install && npm run build"
+    "install-all": "npm install && cd client && npm install"
   },
   "author": "Kellen Busby Software",
   "license": "ISC",
