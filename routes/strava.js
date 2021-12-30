@@ -1,11 +1,14 @@
 const stravaApi = require('strava-v3')
 const router = require('express').Router()
-const { getWarriors, isValidActivityType } = require('../models/scoreboard')
+const {getWarriors, isValidActivityType} = require('../models/scoreboard')
 const User = require('../models/user-model')
 const Activity = require('../models/activity-model')
 const refresh = require('passport-oauth2-refresh')
 
-const forceUpdate = process.env.forceUpdate || false
+const CHALLENGE_START_DATE = process.env.CHALLENGE_START_DATE
+const CHALLENGE_END_DATE = process.env.CHALLENGE_END_DATE
+
+const forceUpdate = process.env.FORCE_UPDATE || false
 
 router.get('/clubs', async (req, res, next) => {
   const strava = new stravaApi.client(req.user.accessToken)
@@ -29,9 +32,9 @@ router.get('/warriors', async (req, res) => {
       console.error(
         'User ' + req.user.displayName + ' is apparently not in the club'
       )
-      res.status(500).json({ error: true, msg: 'User is not in the club' })
+      res.status(500).json({error: true, msg: 'User is not in the club'})
     } else {
-      res.status(500).json({ msg: 'Internal server error' })
+      res.status(500).json({msg: 'Internal server error'})
     }
   }
 })
@@ -78,12 +81,14 @@ router.get('/getActivitiesForAllUsers', async (req, res) => {
           )
           const strava = new stravaApi.client(user.accessToken)
           const startDateEpoch = Math.floor(
-            +new Date('January 01, 2021') / 1000
+            +new Date(CHALLENGE_START_DATE) / 1000
           )
-          const endDateEpoch = Math.floor(+new Date('February 01, 2021') / 1000)
+          const endDateEpoch = Math.floor(+new Date(CHALLENGE_END_DATE) / 1000)
 
           let activities
           try {
+            console.log(startDateEpoch)
+            console.log(endDateEpoch)
             activities = await strava.athlete.listActivities({
               before: endDateEpoch,
               after: startDateEpoch,
@@ -118,6 +123,7 @@ router.get('/getActivitiesForAllUsers', async (req, res) => {
                 per_page: 80,
               })
             } else {
+              console.error(err.message)
               throw new Error(err)
             }
           }

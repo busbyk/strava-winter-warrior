@@ -2,6 +2,8 @@ const stravaApi = require('strava-v3')
 const User = require('../models/user-model')
 const Activity = require('../models/activity-model')
 
+const CLUB = process.env.CHALLENGE_CLUB
+
 let datesInMonth = []
 for (let i = 1; i <= 31; i++) {
   datesInMonth.push(i)
@@ -10,12 +12,12 @@ for (let i = 1; i <= 31; i++) {
 const getWarriors = async function (accessToken) {
   const strava = new stravaApi.client(accessToken)
   const clubs = await strava.athlete.listClubs({})
-  const club = clubs.find((club) => club.name === 'Winter Warrior 2021')
+  const club = clubs.find((club) => club.name === CLUB)
 
   if (club) {
-    const { id } = club
-    const members = await strava.clubs.listMembers({ id: id })
-    let warriors = members.map(({ firstname, lastname }) => ({
+    const {id} = club
+    const members = await strava.clubs.listMembers({id: id})
+    let warriors = members.map(({firstname, lastname}) => ({
       firstname,
       lastname,
     }))
@@ -31,9 +33,8 @@ const getWarriors = async function (accessToken) {
         })
         if (registeredUser) {
           const activities = await getActivitiesForUser(registeredUser.stravaId)
-          const [numDaysActive, score, daysMissed, numActivities] = makeScore(
-            activities
-          )
+          const [numDaysActive, score, daysMissed, numActivities] =
+            makeScore(activities)
           return Object.assign(warrior, {
             hasRegistered: true,
             displayName: registeredUser.displayName,
@@ -110,7 +111,7 @@ const makeScore = function (activities) {
 const sortActivitiesByDate = function (activities, dates) {
   const dateToday = new Date().getDate()
 
-  let jan = new Date('January, 2021')
+  let jan = new Date('January, 2022')
   let activitiesByDate = []
 
   dates.forEach((date) => {
@@ -152,4 +153,4 @@ const isValidActivityType = function (type) {
   return validTypes.includes(type)
 }
 
-module.exports = { getWarriors, sortActivitiesByDate, isValidActivityType }
+module.exports = {getWarriors, sortActivitiesByDate, isValidActivityType}
