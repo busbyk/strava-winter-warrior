@@ -41,7 +41,13 @@ router.get('/warriors', async (req, res) => {
 
 router.get('/listUserActivities/:athleteId', async (req, res) => {
   const athleteId = req.params.athleteId
-  const activities = await Activity.find().where('athleteId').equals(athleteId)
+  const activities = await Activity.find({
+    $and: [
+      {athleteId},
+      {startDate: {$gte: new Date(CHALLENGE_START_DATE).toISOString()}},
+      {startDate: {$lte: new Date(CHALLENGE_END_DATE).toISOString()}},
+    ],
+  })
   const shortActivities = activities
     .map((activity) => {
       return isValidActivityType(activity.type)

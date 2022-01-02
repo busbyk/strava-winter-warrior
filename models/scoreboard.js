@@ -3,6 +3,8 @@ const User = require('../models/user-model')
 const Activity = require('../models/activity-model')
 
 const CLUB = process.env.CHALLENGE_CLUB
+const CHALLENGE_START_DATE = process.env.CHALLENGE_START_DATE
+const CHALLENGE_END_DATE = process.env.CHALLENGE_END_DATE
 
 let datesInMonth = []
 for (let i = 1; i <= 31; i++) {
@@ -56,11 +58,10 @@ const getWarriors = async function (accessToken) {
     )
 
     warriors.sort((a, b) => {
-      return (
-        (a.score === null) - (b.score === null) ||
-        +(a.score < b.score) ||
-        -(a.score > b.score)
-      )
+      if (a.score === b.score) return 0
+      if (a.score === null) return 1
+      if (b.score === null) return -1
+      return parseFloat(b.score) - parseFloat(a.score)
     })
 
     return warriors
@@ -71,7 +72,13 @@ const getWarriors = async function (accessToken) {
 }
 
 const getActivitiesForUser = async function (stravaId) {
-  return await Activity.find().where('athleteId').equals(stravaId)
+  return await Activity.find({
+    $and: [
+      {athleteId: stravaId},
+      {startDate: {$gte: new Date(CHALLENGE_START_DATE).toISOString()}},
+      {startDate: {$lte: new Date(CHALLENGE_END_DATE).toISOString()}},
+    ],
+  })
 }
 
 const makeScore = function (activities) {
