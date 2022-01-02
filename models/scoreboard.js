@@ -18,7 +18,7 @@ const getWarriors = async function (accessToken) {
 
   if (club) {
     const {id} = club
-    const members = await strava.clubs.listMembers({id: id})
+    const members = await strava.clubs.listMembers({id: id, per_page: 100})
     let warriors = members.map(({firstname, lastname}) => ({
       firstname,
       lastname,
