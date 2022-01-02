@@ -1,4 +1,5 @@
 import NavBar from './components/NavBar'
+import Footer from './components/Footer'
 import Scoreboard from './components/Scoreboard'
 import LandingPage from './components/LandingPage'
 import ActivitiesList from './components/ActivitiesList'
@@ -8,7 +9,7 @@ import {
   Route,
   Redirect,
 } from 'react-router-dom'
-import { ProvideAuth, useAuth } from './hooks/use-auth'
+import {ProvideAuth, useAuth} from './hooks/use-auth'
 
 export default function App() {
   return (
@@ -26,24 +27,25 @@ export default function App() {
             <ActivitiesList />
           </PrivateRoute>
         </Switch>
+        <Footer />
       </Router>
     </ProvideAuth>
   )
 }
 
-function PrivateRoute({ children, ...rest }) {
+function PrivateRoute({children, ...rest}) {
   const auth = useAuth()
   return (
     <Route
       {...rest}
-      render={({ location }) =>
+      render={({location}) =>
         auth.user ? (
           children
         ) : (
           <Redirect
             to={{
               pathname: '/',
-              state: { from: location },
+              state: {from: location},
             }}
           />
         )
