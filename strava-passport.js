@@ -47,9 +47,9 @@ const strategy = new StravaStrategy(
         }
       }
 
-      if (existingUser.profileImageUrl !== params.profile) {
+      if (existingUser.profileImageUrl !== params.athlete.profile) {
         try {
-          existingUser.profileImageUrl = params.profile
+          existingUser.profileImageUrl = params.athlete.profile
           await existingUser.save()
         } catch (err) {
           console.error(
