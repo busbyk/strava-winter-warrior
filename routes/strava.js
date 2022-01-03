@@ -74,7 +74,7 @@ router.get('/getActivitiesForAllUsers', async (req, res) => {
   const allUsers = await User.find({})
 
   try {
-    await Promise.all(
+    await Promise.allSettled(
       allUsers.map(async (user) => {
         if (
           forceUpdate ||
@@ -113,8 +113,7 @@ router.get('/getActivitiesForAllUsers', async (req, res) => {
                 async (err, accessToken, refreshToken) => {
                   if (err) {
                     throw new Error(
-                      'error refreshing token for ',
-                      user.displayName
+                      `error refreshing token for ${user.displayName}, error: ${err.message}`
                     )
                   }
                   user.accessToken = accessToken
