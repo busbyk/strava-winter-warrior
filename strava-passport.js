@@ -1,7 +1,7 @@
 const passport = require('passport')
 const StravaStrategy = require('passport-strava-oauth2').Strategy
 const User = require('./models/user-model')
-const { STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET } = require('./config/default')
+const {STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET} = require('./config/default')
 const refresh = require('passport-oauth2-refresh')
 
 passport.serializeUser((user, done) => {
@@ -46,6 +46,18 @@ const strategy = new StravaStrategy(
           return done(null, newUser)
         }
       }
+
+      if (existingUser.profileImageUrl !== params.profile) {
+        try {
+          existingUser.profileImageUrl = params.profile
+          await existingUser.save()
+        } catch (err) {
+          console.error(
+            `Couldn't update profile photo for ${existingUser.displayName}`
+          )
+        }
+      }
+
       done(null, existingUser)
     } catch (err) {
       console.error(err)
